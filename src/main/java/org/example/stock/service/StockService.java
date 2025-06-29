@@ -18,6 +18,19 @@ public class StockService {
                 .orElseThrow(() -> new RuntimeException("id에 해당하는 stock가 없습니다."));
         // 재고 감소
         stock.decrease(quantity);
-        stockRepository.saveAndFlush(stock);
+        stockRepository.save(stock);
+    }
+
+    @Transactional
+    public void decreasePessimistic(Long id, Long quantity) {
+        // Stock 조회
+        Stock stock = stockRepository.findByIdWithPessimisticLock(id);
+
+        if (stock == null) {
+            throw new RuntimeException("id에 해당하는 stock가 없습니다.");
+        }
+        // 재고 감소
+        stock.decrease(quantity);
+        stockRepository.save(stock);
     }
 }
