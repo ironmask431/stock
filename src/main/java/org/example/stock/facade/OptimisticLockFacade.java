@@ -4,6 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.example.stock.service.StockService;
 import org.springframework.stereotype.Component;
 
+/**
+ *  OptimisticLockFacade 추가하는 이유.
+ *  낙관락에서 버전충돌로 인한 exception 발생 시 다시 쿼리를 실행시키기 위함.
+ *  stockService 객체내 다른 메소드에서 실행하면 제대로 되지 않음...
+ *  반드시 다른 객체에서 호출
+**/
+
 @Component
 @RequiredArgsConstructor
 public class OptimisticLockFacade {
