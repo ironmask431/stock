@@ -39,14 +39,14 @@ class StockServiceTest {
     }
 
     @Test
-    void 재고_감소() {
+    void 재고_감소_단일스레드() {
         stockService.decrease(1L, 10L);
         Stock stock = stockRepository.findById(1L).orElseThrow();
         assertEquals(90L, stock.getQuantity());
     }
 
     @Test
-    void 동시에_100건요청() throws InterruptedException {
+    void 동시에_100건요청_실패케이스() throws InterruptedException {
         int threadCount = 100;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -55,6 +55,34 @@ class StockServiceTest {
             executorService.submit(() -> {
                 try {
                     stockService.decrease(1L, 1L);
+                    System.out.println("leesh stockService.decrease");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    latch.countDown();
+                    System.out.println("leesh latch.countDown");
+                }
+            });
+        }
+
+        latch.await();
+        System.out.println("leesh await end");
+        Stock stock = stockRepository.findById(1L).orElseThrow();
+
+        // 100개 - (1 * 100) = 0개 예상
+        assertNotEquals(0L, stock.getQuantity()); // 여러 스레드에서 동시 접근 하므로 실패 처리된다.
+    }
+
+    @Test
+    void 동시에_100건요청_synchronized() throws InterruptedException {
+        int threadCount = 100;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    stockService.decreaseSync(1L, 1L);
                     System.out.println("leesh stockService.decrease");
                 } catch (Exception e) {
                     e.printStackTrace();

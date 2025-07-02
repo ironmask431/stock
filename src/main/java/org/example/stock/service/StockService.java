@@ -11,37 +11,40 @@ import org.springframework.transaction.annotation.Transactional;
 public class StockService {
     private final StockRepository stockRepository;
 
-    //@Transactional
+    @Transactional
     public synchronized void decrease(Long id, Long quantity){
-        // Stock 조회
         Stock stock = stockRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("id에 해당하는 stock가 없습니다."));
-        // 재고 감소
         stock.decrease(quantity);
         stockRepository.save(stock);
     }
 
+    //@Transactional
+    public synchronized void decreaseSync(Long id, Long quantity){
+        Stock stock = stockRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("id에 해당하는 stock가 없습니다."));
+        stock.decrease(quantity);
+        stockRepository.save(stock);
+    }
+
+
     @Transactional
     public void decreasePessimistic(Long id, Long quantity) {
-        // Stock 조회
         Stock stock = stockRepository.findByIdWithPessimisticLock(id);
 
         if (stock == null) {
             throw new RuntimeException("id에 해당하는 stock가 없습니다.");
         }
-        // 재고 감소
         stock.decrease(quantity);
     }
 
     @Transactional
     public void decreaseOptimistic(Long id, Long quantity) {
-        // Stock 조회
         Stock stock = stockRepository.findByIdWithOptimisticLock(id);
 
         if (stock == null) {
             throw new RuntimeException("id에 해당하는 stock가 없습니다.");
         }
         stock.decrease(quantity);
-        stockRepository.save(stock);
     }
 }
